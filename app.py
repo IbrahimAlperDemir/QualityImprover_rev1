@@ -5,7 +5,7 @@ from form_tracker import get_form_history
 
 st.set_page_config(page_title="Gereksinim Dokümanı Oluşturucu", layout="centered")
 
-st.title("🧠 Gereksinim Dokümanı Oluşturucu")
+st.title("Gereksinim Dokümanı Oluşturucu")
 
 st.markdown("Aşağıdaki alanları doldurarak profesyonel bir ürün gereksinim dokümanı oluşturabilirsiniz:")
 
