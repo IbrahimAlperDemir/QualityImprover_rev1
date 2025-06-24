@@ -1,26 +1,14 @@
 import streamlit as st
 from generator import generate_requirements
 from save_to_docx import save_to_docx
-from form_tracker import get_form_history
+from form_tracker import get_next_form_number
 
-st.set_page_config(page_title="Gereksinim Dokümanı Oluşturucu", layout="centered")
+st.set_page_config(page_title="Gereksinim Dokümanı Oluşturucu")
+st.title("📄 Gereksinim Dokümanı Oluşturucu")
 
-st.title("Gereksinim Dokümanı Oluşturucu")
-
-st.markdown("Aşağıdaki alanları doldurarak profesyonel bir ürün gereksinim dokümanı oluşturabilirsiniz:")
-
-with st.expander("📚 Oluşturulmuş Form Geçmişi"):
-    history = get_form_history()
-    if history:
-        for item in history[::-1]:  # En son kayıt en üstte
-            st.markdown(f"🧾 **{item['form_code']}** ({item['type']}) — {item['date']} — `{item['filename']}`")
-    else:
-        st.info("Henüz oluşturulmuş form kaydı bulunmuyor.")
+st.markdown("Profesyonel gereksinim dokümanı oluşturmak için aşağıdaki alanları doldurun:")
 
 with st.form("feature_form"):
-    doc_type = st.selectbox("Form Türü", ["PRD", "TEST", "QMS"], index=0)
-    revision = st.text_input("Revizyon", value="A")
-
     name = st.text_input("1. Özellik Adı")
     purpose = st.text_area("2. Bu özellik ne işe yarar? (Amaç)")
     how_it_works = st.text_area("3. Nasıl çalışır?")
@@ -29,10 +17,16 @@ with st.form("feature_form"):
     constraints = st.text_area("6. Donanım / Yazılım kısıtları")
     acceptance = st.text_area("7. Kabul kriteri / test senaryosu")
 
+    doc_type = st.selectbox("8. Doküman Türü", ["PRD", "TST", "DES", "REQ"])
+    revision = st.text_input("9. Revizyon Numarası", value="A")
+
     submitted = st.form_submit_button("📄 Dokümanı Oluştur")
 
 if submitted:
     with st.spinner("Gereksinim dokümanı oluşturuluyor..."):
+        form_number = get_next_form_number(doc_type)
+        filename = f"Gereksinim_{doc_type}_{form_number}.docx"
+
         data = {
             "name": name,
             "purpose": purpose,
@@ -40,13 +34,12 @@ if submitted:
             "user_facing": user_facing,
             "not_expected": not_expected,
             "constraints": constraints,
-            "acceptance": acceptance,
-            "doc_type": doc_type,
-            "revision": revision
+            "acceptance": acceptance
         }
+
         doc_text = generate_requirements(data)
-        filename = "Gereksinim_Dokumani.docx"
         save_to_docx(doc_text, filename, doc_type=doc_type, revision=revision)
+
         with open(filename, "rb") as file:
             st.success("📄 Doküman hazır!")
             st.download_button(
